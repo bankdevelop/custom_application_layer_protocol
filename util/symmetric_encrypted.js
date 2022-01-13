@@ -5,26 +5,50 @@ var algorithm = 'aes256';
 var inputEncoding = 'utf8';
 var outputEncoding = 'hex';
 var ivlength = 16  // AES blocksize
-
-var key = Buffer.from('ciw7p02f70000ysjon7gztjn7c2x7GfJ', 'latin1'); // key must be 32 bytes for aes256
 var iv = crypto.randomBytes(ivlength);
 
-var text = 'WOW ZA';
+let symmetric = module.exports;
 
-console.log('Ciphering "%s" with key "%s" using %s', text, key, algorithm);
+symmetric.generateKey = function(){
+    // return constant key but deployment must random key.
+    return 'ciw7p02f70000ysjon7gztjn7c2x7GfJ';
+}
 
-var cipher = crypto.createCipheriv(algorithm, key, iv);
-var ciphered = cipher.update(text, inputEncoding, outputEncoding);
-ciphered += cipher.final(outputEncoding);
-var ciphertext = iv.toString(outputEncoding) + ':' + ciphered
+symmetric.encrypt = function(key, text){
+    key = convertToBuffer(key)
+    var cipher = crypto.createCipheriv(algorithm, key, iv);
+    var ciphered = cipher.update(text, inputEncoding, outputEncoding);
+    ciphered += cipher.final(outputEncoding);
+    var ciphertext = iv.toString(outputEncoding) + ':' + ciphered
 
-console.log('Result in %s is "%s"', outputEncoding, ciphertext);
+    return ciphertext;
+}
 
-var components = ciphertext.split(':');
-var iv_from_ciphertext = Buffer.from(components.shift(), outputEncoding);
-var decipher = crypto.createDecipheriv(algorithm, key, iv_from_ciphertext);
-var deciphered = decipher.update(components.join(':'), outputEncoding, inputEncoding);
-deciphered += decipher.final(inputEncoding);
+symmetric.decrypt = function(key, ciphertext){
+    key = convertToBuffer(key)
+    var components = ciphertext.split(':');
+    var iv_from_ciphertext = Buffer.from(components.shift(), outputEncoding);
+    var decipher = crypto.createDecipheriv(algorithm, key, iv_from_ciphertext);
+    var deciphered = decipher.update(components.join(':'), outputEncoding, inputEncoding);
+    deciphered += decipher.final(inputEncoding);
 
-console.log(deciphered);
-assert.equal(deciphered, text, 'Deciphered text does not match!');
+    return deciphered;
+}
+
+function convertToBuffer(textKey){
+    return Buffer.from(textKey, 'latin1');
+}
+
+function test(){
+    var text = 'WOW ZA';
+    var key = Buffer.from('ciw7p02f70000ysjon7gztjn7c2x7GfJ', 'latin1'); // key must be 32 bytes for aes256
+
+    console.log('Ciphering "%s" with key "%s" using %s', text, key, algorithm);
+
+    var encryptText = symmetric.encrypt(key, text);
+    var decryptText = symmetric.decrypt(key, encryptText);
+
+    console.log('Result in %s is "%s"', outputEncoding, encryptText);
+    console.log(encryptText);
+    assert.equal(decryptText, text, 'Deciphered text does not match!');
+}
