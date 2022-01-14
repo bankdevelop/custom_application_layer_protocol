@@ -41,7 +41,7 @@ function convertToBuffer(textKey){
 
 function test(){
     var text = 'WOW ZA';
-    var key = Buffer.from('ciw7p02f70000ysjon7gztjn7c2x7GfJ', 'latin1'); // key must be 32 bytes for aes256
+    var key = Buffer.from('ciw8p02f78888ysjon7gztjn7c2x7GfJ', 'latin1'); // key must be 32 bytes for aes256
 
     console.log('Ciphering "%s" with key "%s" using %s', text, key, algorithm);
 
